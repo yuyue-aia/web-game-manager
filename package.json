@@ -1,0 +1,22 @@
+{
+  "name": "web-game-manager",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "web": "tsx src/web/start-web.ts",
+    "web:daemon": "./scripts/web-service.sh start",
+    "web:stop": "./scripts/web-service.sh stop",
+    "web:status": "./scripts/web-service.sh status",
+    "web:logs": "./scripts/web-service.sh logs"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3"
+  }
+}
