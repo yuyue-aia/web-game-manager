@@ -139,7 +139,11 @@ export function serveStatic(
   }
 
   const mime = MIME[extname(filePath).toLowerCase()] || 'application/octet-stream';
-  res.writeHead(200, { 'content-type': mime, 'x-content-type-options': 'nosniff' });
+  res.writeHead(200, {
+    'content-type': mime,
+    'cache-control': 'no-store, max-age=0',
+    'x-content-type-options': 'nosniff',
+  });
   createReadStream(filePath).pipe(res);
   return true;
 }

@@ -80,17 +80,19 @@
     var pwdBtn = el('button', { class: 'btn ghost sm', onclick: App.openChangePassword }, '改密');
 
     root.appendChild(el('div', { class: 'brand' },
-      el('span', { class: 'dot' }), el('h1', {}, '游戏管家'),
+      el('span', { class: 'brand-sigil', 'aria-hidden': 'true' }, el('i'), el('b')),
+      el('span', { class: 'brand-copy' }, el('h1', {}, '游戏管家'), el('small', {}, 'CONTROL SYSTEM / ONLINE')),
       el('span', { class: 'who' }, me.displayName, profBtn, pwdBtn, logoutBtn)));
 
     // ---- 侧导航（可选） + 内容区 ----
-    var content = el('div', { class: 'content' });
+    var content = el('main', { class: 'content', 'data-section': activeNavKey || 'home' });
     if (activeNavKey) {
       var routes = isAdmin ? ADMIN_ROUTES : PLAYER_ROUTES;
       var sidenav = el('nav', { class: 'sidenav' });
       routes.forEach(function (r) {
         sidenav.appendChild(el('a', {
           href: r.href,
+          'data-nav': r.k,
           class: r.k === activeNavKey ? 'active' : ''
         }, r.label));
       });

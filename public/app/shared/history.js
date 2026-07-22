@@ -16,13 +16,20 @@
     var endText = sameLocalDay(start, end) ? shortTime(end) : shortDate(end) + ' ' + shortTime(end);
     return day + ' ' + shortTime(start) + '～' + endText;
   }
+  function compactHistoryTimeText(record) {
+    var start = new Date(record.startedAt), end = new Date(record.endedAt), now = new Date();
+    if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) return '--:--';
+    return (sameLocalDay(start, now) ? '' : shortDate(start) + ' · ') + shortTime(start) + '—' + shortTime(end);
+  }
 
   function makeHistoryCard(records, isAdmin, filter, onFilter) {
     var el = App.el;
     records = Array.isArray(records) ? records : [];
     filter = filter === 'game' || filter === 'tv' ? filter : 'all';
-    var card = el('section', { class: 'card history-card' });
-    var head = el('div', { class: 'history-head' }, el('h2', {}, isAdmin ? '历史使用记录' : '我的历史记录'));
+    var card = el('section', { class: 'card history-card' + (isAdmin ? '' : ' history-card--player') });
+    var head = el('div', { class: 'history-head' }, isAdmin
+      ? el('h2', {}, '历史使用记录')
+      : el('div', { class: 'history-hud-mark', 'aria-label': '记录' }, el('span', {}, '◈')));
 
     if (!isAdmin) {
       var weekStart = new Date();
@@ -36,35 +43,37 @@
         else gameTotal += Number(record.actualMinutes) || 0;
       });
       head.appendChild(el('div', { class: 'history-summary' },
-        '本周：游戏 ' + gameTotal + ' 分钟', el('br'), '电视 ' + tvTotal + ' 分钟'));
+        '本周 · 🎮 ' + gameTotal + ' · 📺 ' + tvTotal));
     }
     card.appendChild(head);
 
     var tabs = el('div', { class: 'history-tabs' });
-    [{ k: 'all', t: '全部' }, { k: 'game', t: '游戏' }, { k: 'tv', t: '电视' }].forEach(function (item) {
+    [{ k: 'all', t: '全部', icon: '◉' }, { k: 'game', t: '游戏', icon: '🎮' }, { k: 'tv', t: '电视', icon: '📺' }].forEach(function (item) {
       tabs.appendChild(el('button', {
-        type: 'button', class: item.k === filter ? 'on' : '',
+        type: 'button', class: item.k === filter ? 'on' : '', 'aria-label': item.t, title: item.t,
         onclick: function () { if (item.k !== filter) onFilter(item.k); }
-      }, item.t));
+      }, isAdmin ? item.t : item.icon));
     });
     card.appendChild(tabs);
 
     var visible = records.filter(function (record) { return filter === 'all' || record.activity === filter; }).slice(0, 20);
     if (visible.length === 0) {
-      card.appendChild(el('p', { class: 'muted', style: { margin: '16px 2px 2px' } }, '暂无使用记录'));
+      card.appendChild(isAdmin
+        ? el('p', { class: 'muted', style: { margin: '16px 2px 2px' } }, '暂无使用记录')
+        : el('div', { class: 'history-empty', 'aria-label': '暂无使用记录' }, '—'));
       return card;
     }
     visible.forEach(function (record) {
       var isTv = record.activity === 'tv';
       var reason = record.endReason === 'manual' ? '主动停止' : '自动结束';
-      card.appendChild(el('div', { class: 'history-row' },
-        el('div', { class: 'history-icon' }, isTv ? '📺' : '🎮'),
+      card.appendChild(el('div', { class: 'history-row', 'aria-label': isTv ? '电视记录' : '游戏记录' },
+        el('div', { class: 'history-icon', 'aria-hidden': 'true' }, isTv ? '📺' : '🎮'),
         el('div', {},
-          el('div', { class: 'history-title' }, (isAdmin ? record.label + ' · ' : '') + (isTv ? '电视' : '游戏')),
-          el('div', { class: 'history-time' }, historyTimeText(record))),
+          isAdmin ? el('div', { class: 'history-title' }, record.label + ' · ' + (isTv ? '电视' : '游戏')) : null,
+          el('div', { class: 'history-time' }, isAdmin ? historyTimeText(record) : compactHistoryTimeText(record))),
         el('div', {},
-          el('div', { class: 'history-minutes' }, String(record.actualMinutes) + ' 分钟'),
-          el('div', { class: 'history-reason' }, reason))));
+          el('div', { class: 'history-minutes' }, isAdmin ? String(record.actualMinutes) + ' 分钟' : String(record.actualMinutes) + '′'),
+          isAdmin ? el('div', { class: 'history-reason' }, reason) : null)));
     });
     return card;
   }
