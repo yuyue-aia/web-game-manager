@@ -10,11 +10,14 @@
     { key: 'v1', label: 'V1 · 便携机', path: '/pages/login-fx.js' },
     { key: 'v2', label: 'V2 · 终端', path: '/pages/login-fx-v2.js' },
     { key: 'v3', label: 'V3 · 黑洞', path: '/pages/login-fx-v3.js' },
+    { key: 'v4', label: 'V4 · 引力场', path: '/pages/login-fx-v4.js' },
+    { key: 'v5', label: 'V5 · 光幕', path: '/pages/login-fx-v5.js' },
   ];
   var FX_STORAGE_KEY = 'login.fx.version';
   var fx = null;
   var currentVersionKey = null;
   var bootFlag = false;
+  var fxLoadToken = 0;
 
   function readSavedVersion() {
     try {
@@ -40,6 +43,7 @@
   /** 卸载旧版 fx（GL + form + body class） */
   function unloadFx() {
     if (fx && fx.unmount) { try { fx.unmount(); } catch (e) {} }
+    document.body.classList.remove('fx-v1', 'fx-v2', 'fx-v3', 'fx-v4', 'fx-v5');
     fx = null;
   }
 
@@ -47,16 +51,21 @@
   function loadFx(key) {
     if (currentVersionKey === key && fx) return Promise.resolve(fx);
     var snapshot = snapshotInputs();
-    unloadFx();
     var target = FX_VERSIONS.find(function (v) { return v.key === key; }) || FX_VERSIONS[0];
+    var token = ++fxLoadToken;
     currentVersionKey = target.key;
     writeSavedVersion(target.key);
     return import(target.path).then(function (mod) {
+      if (token !== fxLoadToken) return null;
+      // 新模块准备好之后再撤掉旧画面，避免加载空档造成整页闪烁。
+      unloadFx();
+      document.body.classList.add('fx-' + target.key);
       fx = mod;
       try { fx.mount(); } catch (e) { console.warn('fx mount failed', e); }
       renderShellAndForm(snapshot);
       return fx;
     }).catch(function (e) {
+      if (token !== fxLoadToken) return null;
       console.warn('fx import failed', e);
       fx = null;
     });
@@ -70,7 +79,7 @@
     App.clear(root);
     root.appendChild(App.el('div', { class: 'center-screen' },
       App.el('div', { class: 'brand', style: { justifyContent: 'center', marginBottom: '10px' } },
-        App.el('span', { class: 'dot' }), App.el('h1', {}, '游戏管家')),
+        App.el('span', { class: 'dot', 'aria-label': '应用标记' })),
       bootFlag ? App.el('p', { class: 'muted', style: { textAlign: 'center', margin: '0 0 20px' } }, '首次使用，创建管理员账号') : null,
       App.el('div', { id: 'fx-form-host' })));
     loadFx(readSavedVersion());

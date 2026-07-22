@@ -13,6 +13,211 @@
   font-synthesis-weight: none;
 }
 * { box-sizing: border-box; }
+
+/* 无文字控制台：可见操作使用符号，原文保留在 aria-label 中。 */
+.ui-icon-only .icon-control {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0 !important;
+  letter-spacing: 0 !important;
+}
+.ui-icon-only .icon-control > * { display: none !important; }
+.ui-icon-only .icon-control::before {
+  content: "•";
+  font: 700 18px/1 -apple-system, BlinkMacSystemFont, "Segoe UI Symbol", sans-serif;
+  letter-spacing: 0;
+}
+.ui-icon-only [data-icon="v1"]::before { content: "▣"; }
+.ui-icon-only [data-icon="v2"]::before { content: "⌘"; }
+.ui-icon-only [data-icon="v3"]::before { content: "●"; }
+.ui-icon-only [data-icon="v4"]::before { content: "◎"; }
+.ui-icon-only [data-icon="v5"]::before { content: "≋"; }
+.ui-icon-only [data-icon="status"]::before { content: "◉"; }
+.ui-icon-only [data-icon="sliders"]::before { content: "☷"; }
+.ui-icon-only [data-icon="network"]::before { content: "⌁"; }
+.ui-icon-only [data-icon="user"]::before { content: "♙"; }
+.ui-icon-only [data-icon="key"]::before { content: "⌁"; transform: rotate(-45deg); }
+.ui-icon-only [data-icon="logout"]::before { content: "↗"; }
+.ui-icon-only [data-icon="delete"]::before { content: "×"; }
+.ui-icon-only [data-icon="refresh"]::before { content: "↻"; }
+.ui-icon-only [data-icon="stop"]::before { content: "■"; }
+.ui-icon-only [data-icon="check"]::before { content: "✓"; }
+.ui-icon-only [data-icon="add"]::before { content: "+"; }
+.ui-icon-only [data-icon="tv"]::before { content: "▤"; }
+.ui-icon-only [data-icon="play"]::before { content: "▶"; }
+.ui-icon-only [data-icon="all"]::before { content: "•••"; }
+.ui-icon-only [data-icon="day1"]::before { content: "●"; }
+.ui-icon-only [data-icon="day2"]::before { content: "●●"; }
+.ui-icon-only [data-icon="day3"]::before { content: "●●●"; }
+.ui-icon-only [data-icon="day4"]::before { content: "◆"; }
+.ui-icon-only [data-icon="day5"]::before { content: "◆◆"; }
+.ui-icon-only [data-icon="day6"]::before { content: "■"; }
+.ui-icon-only [data-icon="day7"]::before { content: "○"; }
+.ui-icon-only .brand h1:empty,
+.ui-icon-only h1:empty,
+.ui-icon-only h2:empty,
+.ui-icon-only h3:empty,
+.ui-icon-only p:empty,
+.ui-icon-only .section-title:empty { display: none !important; }
+.ui-icon-only .ok-toast,
+.ui-icon-only .err { font-size: 0 !important; text-align: center; }
+.ui-icon-only .ok-toast::before { content: "✓"; font-size: 18px; }
+.ui-icon-only .err::before { content: "!"; font-size: 18px; font-weight: 900; }
+.ui-icon-only input::placeholder,
+.ui-icon-only textarea::placeholder { color: transparent !important; }
+.ui-icon-only input[data-field-icon],
+.ui-icon-only textarea[data-field-icon],
+.ui-icon-only select[data-field-icon] {
+  padding-left: 50px !important;
+  background-repeat: no-repeat !important;
+  background-position: 17px 50% !important;
+  background-size: 20px 20px !important;
+}
+.ui-icon-only [data-field-icon="user"] {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238a9bb7' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='12' cy='8' r='3.2'/%3E%3Cpath d='M5.8 19c.8-3.2 3-5 6.2-5s5.4 1.8 6.2 5'/%3E%3C/svg%3E") !important;
+}
+.ui-icon-only [data-field-icon="lock"] {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238a9bb7' stroke-width='1.8' stroke-linecap='round'%3E%3Crect x='5.5' y='10' width='13' height='10' rx='2'/%3E%3Cpath d='M8.5 10V7.5a3.5 3.5 0 0 1 7 0V10'/%3E%3Ccircle cx='12' cy='15' r='1'/%3E%3C/svg%3E") !important;
+}
+.ui-icon-only [data-field-icon="time"] {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238a9bb7' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='8'/%3E%3Cpath d='M12 7v5l3 2'/%3E%3C/svg%3E") !important;
+}
+.ui-icon-only [data-field-icon="network"] {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238a9bb7' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='6' cy='12' r='2'/%3E%3Ccircle cx='18' cy='7' r='2'/%3E%3Ccircle cx='18' cy='17' r='2'/%3E%3Cpath d='m8 11 8-3M8 13l8 3'/%3E%3C/svg%3E") !important;
+}
+.ui-icon-only [data-field-icon="bell"] {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238a9bb7' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='M6.5 16.5h11l-1.5-2V10a4 4 0 0 0-8 0v4.5zM10 19h4'/%3E%3C/svg%3E") !important;
+}
+.ui-icon-only [data-field-icon="edit"] {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238a9bb7' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='m7 17 1-4L16.5 4.5a2 2 0 0 1 3 3L11 16zM6 20h12'/%3E%3C/svg%3E") !important;
+}
+
+/* 全局鼠标系统：仅由 cursor.js 在精细指针设备上启用。 */
+html.has-custom-cursor,
+html.has-custom-cursor * { cursor: none !important; }
+html[data-cursor-page] {
+  --cursor-color: #4c8dff;
+  --cursor-glow: rgba(76,141,255,.22);
+  --cursor-rotate: 0deg;
+  --cursor-radius: 50%;
+}
+html[data-cursor-page="player"] { --cursor-color: #2fbf71; --cursor-glow: rgba(47,191,113,.2); --cursor-radius: 40%; }
+html[data-cursor-page="status"] { --cursor-color: #32bd78; --cursor-glow: rgba(50,189,120,.2); }
+html[data-cursor-page="config"] { --cursor-color: #7b6cff; --cursor-glow: rgba(123,108,255,.2); --cursor-rotate: 45deg; --cursor-radius: 5px; }
+html[data-cursor-page="devices"] { --cursor-color: #18a9c7; --cursor-glow: rgba(24,169,199,.2); --cursor-radius: 3px; }
+html[data-cursor-page="users"] { --cursor-color: #ff7a59; --cursor-glow: rgba(255,122,89,.2); --cursor-radius: 8px; }
+html[data-cursor-page="entry"] { --cursor-color: #2b2b33; --cursor-glow: rgba(43,43,51,.14); --cursor-rotate: 45deg; --cursor-radius: 4px; }
+
+.custom-cursor,
+.custom-cursor-aura,
+.custom-cursor-trails,
+.custom-cursor-pulse {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+.custom-cursor {
+  width: 32px;
+  height: 32px;
+  opacity: 0;
+  will-change: transform;
+  transition: opacity .18s;
+}
+.custom-cursor.is-visible { opacity: 1; }
+.custom-cursor__shape {
+  position: absolute;
+  inset: 5px;
+  display: block;
+  border: 1.5px solid var(--cursor-color);
+  border-radius: var(--cursor-radius);
+  box-shadow: 0 0 14px var(--cursor-glow), inset 0 0 9px var(--cursor-glow);
+  transform: rotate(var(--cursor-rotate)) scale(1);
+  transition: inset .18s, border-radius .18s, background .18s, transform .18s, opacity .18s;
+}
+.custom-cursor__dot {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--cursor-color);
+  box-shadow: 0 0 9px var(--cursor-color);
+  transition: transform .16s, opacity .16s;
+}
+.custom-cursor.is-interactive .custom-cursor__shape {
+  inset: 1px;
+  background: var(--cursor-glow);
+  transform: rotate(var(--cursor-rotate)) scale(1.08);
+}
+.custom-cursor.is-interactive .custom-cursor__dot { transform: scale(1.45); }
+.custom-cursor.is-text .custom-cursor__shape {
+  inset: 4px 14px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--cursor-color);
+  box-shadow: 0 0 11px var(--cursor-color);
+  transform: none;
+}
+.custom-cursor.is-text .custom-cursor__dot { opacity: 0; }
+.custom-cursor.is-down .custom-cursor__shape { transform: rotate(var(--cursor-rotate)) scale(.72); }
+.custom-cursor-aura {
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  opacity: 0;
+  background: radial-gradient(circle, var(--cursor-glow) 0%, transparent 68%);
+  will-change: transform;
+  transition: opacity .3s;
+}
+.custom-cursor-aura.is-visible { opacity: .56; }
+.custom-cursor-trails { inset: 0; opacity: 0; transition: opacity .2s; }
+.custom-cursor-trails.is-visible { opacity: 1; }
+.custom-cursor-trails i {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--cursor-color);
+  box-shadow: 0 0 7px var(--cursor-glow);
+  opacity: .42;
+  will-change: transform;
+}
+.custom-cursor-trails i:nth-child(2) { width: 3.7px; height: 3.7px; opacity: .36; }
+.custom-cursor-trails i:nth-child(3) { width: 3.4px; height: 3.4px; opacity: .3; }
+.custom-cursor-trails i:nth-child(4) { width: 3.1px; height: 3.1px; opacity: .24; }
+.custom-cursor-trails i:nth-child(5) { width: 2.8px; height: 2.8px; opacity: .18; }
+.custom-cursor-trails i:nth-child(6) { width: 2.5px; height: 2.5px; opacity: .12; }
+.custom-cursor-pulse {
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border: 1px solid var(--cursor-color);
+  border-radius: 50%;
+  animation: cursor-pulse .48s ease-out forwards;
+}
+@keyframes cursor-pulse {
+  to { opacity: 0; transform: scale(5.2); }
+}
+
+/* 登录版本各自的指针几何和色彩。 */
+body.fx-v1 { --cursor-color: #58e5ff; --cursor-glow: rgba(88,229,255,.24); --cursor-rotate: 45deg; --cursor-radius: 6px; }
+body.fx-v2 { --cursor-color: #ff9f25; --cursor-glow: rgba(255,159,37,.24); --cursor-radius: 1px; }
+body.fx-v3 { --cursor-color: #00f0ff; --cursor-glow: rgba(0,240,255,.24); --cursor-rotate: 30deg; --cursor-radius: 2px; }
+body.fx-v4 { --cursor-color: #69d8ff; --cursor-glow: rgba(105,216,255,.24); --cursor-radius: 50%; }
+body.fx-v5 { --cursor-color: #70f3d4; --cursor-glow: rgba(112,243,212,.24); --cursor-radius: 2px; }
+
+@media (pointer: coarse), (prefers-reduced-motion: reduce) {
+  html.has-custom-cursor,
+  html.has-custom-cursor * { cursor: auto !important; }
+  .custom-cursor, .custom-cursor-aura, .custom-cursor-trails, .custom-cursor-pulse { display: none !important; }
+}
 html, body { margin: 0; padding: 0; }
 body {
   background: radial-gradient(1200px 600px at 50% -10%, #FFFDF8 0%, var(--bg) 60%);
