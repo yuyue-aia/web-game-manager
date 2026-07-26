@@ -359,7 +359,7 @@ export class UsersStore {
           displayName: (u.displayName && u.displayName.trim()) || (u.username as string),
           avatar: isAvatar(u.avatar) ? u.avatar : DEFAULT_AVATAR,
           passwordHash: u.passwordHash as string,
-          role: u.role === 'admin' ? 'admin' : 'member',
+          role: u.role === 'admin' || u.role === 'test' ? u.role : 'member',
           createdAt: u.createdAt || new Date().toISOString(),
           lastLoginAt: u.lastLoginAt,
         }));

@@ -2,49 +2,169 @@
 (function () {
   'use strict';
 
+  // ---------- 背景特效：版本管理 ----------
+  // 每个版本是一个模块路径，模块导出：
+  //   mount / unmount / pulse / flashError / focusBoost
+  //   renderForm({container, boot}) —— 版本专属登录框，返回 {form,uInput,pInput,btn,errBox,setBusy,showError,clearError}
+  var FX_VERSIONS = [
+    { key: 'v1', label: 'V1 · 便携机', path: '/pages/login-fx.js' },
+    { key: 'v2', label: 'V2 · 终端', path: '/pages/login-fx-v2.js' },
+    { key: 'v3', label: 'V3 · 黑洞', path: '/pages/login-fx-v3.js' },
+    { key: 'v4', label: 'V4 · 引力场', path: '/pages/login-fx-v4.js' },
+    { key: 'v5', label: 'V5 · 光幕', path: '/pages/login-fx-v5.js' },
+  ];
+  var FX_STORAGE_KEY = 'login.fx.version';
+  var fx = null;
+  var currentVersionKey = null;
+  var bootFlag = false;
+  var fxLoadToken = 0;
+
+  function readSavedVersion() {
+    try {
+      var v = localStorage.getItem(FX_STORAGE_KEY);
+      if (v && FX_VERSIONS.some(function (x) { return x.key === v; })) return v;
+    } catch (e) {}
+    return FX_VERSIONS[0].key;
+  }
+  function writeSavedVersion(k) {
+    try { localStorage.setItem(FX_STORAGE_KEY, k); } catch (e) {}
+  }
+
+  /** 捕获当前输入框中的用户名/密码，用于版本切换后恢复 */
+  function snapshotInputs() {
+    var root = document.getElementById('root');
+    var inputs = root ? root.querySelectorAll('input') : [];
+    return {
+      u: inputs[0] ? inputs[0].value : '',
+      p: inputs[1] ? inputs[1].value : '',
+    };
+  }
+
+  /** 卸载旧版 fx（GL + form + body class） */
+  function unloadFx() {
+    if (fx && fx.unmount) { try { fx.unmount(); } catch (e) {} }
+    document.body.classList.remove('fx-v1', 'fx-v2', 'fx-v3', 'fx-v4', 'fx-v5');
+    fx = null;
+  }
+
+  /** 加载并挂载指定版本：切换背景 + 用该版本的 renderForm 重建表单 */
+  function loadFx(key) {
+    if (currentVersionKey === key && fx) return Promise.resolve(fx);
+    var snapshot = snapshotInputs();
+    var target = FX_VERSIONS.find(function (v) { return v.key === key; }) || FX_VERSIONS[0];
+    var token = ++fxLoadToken;
+    currentVersionKey = target.key;
+    writeSavedVersion(target.key);
+    return import(target.path).then(function (mod) {
+      if (token !== fxLoadToken) return null;
+      // 新模块准备好之后再撤掉旧画面，避免加载空档造成整页闪烁。
+      unloadFx();
+      document.body.classList.add('fx-' + target.key);
+      fx = mod;
+      try { fx.mount(); } catch (e) { console.warn('fx mount failed', e); }
+      renderShellAndForm(snapshot);
+      return fx;
+    }).catch(function (e) {
+      if (token !== fxLoadToken) return null;
+      console.warn('fx import failed', e);
+      fx = null;
+    });
+  }
+
   App.boot({ need: 'guest' }).then(function (ctx) {
     if (ctx.skip) return;
-    render(ctx.needsBootstrap);
+    bootFlag = !!ctx.needsBootstrap;
+    // 先渲染一个空 shell 占位（品牌 + 内容区），等 fx 加载后填充表单
+    var root = document.getElementById('root');
+    App.clear(root);
+    root.appendChild(App.el('div', { class: 'center-screen' },
+      App.el('div', { class: 'brand', style: { justifyContent: 'center', marginBottom: '10px' } },
+        App.el('span', { class: 'dot', 'aria-label': '应用标记' })),
+      bootFlag ? App.el('p', { class: 'muted', style: { textAlign: 'center', margin: '0 0 20px' } }, '首次使用，创建管理员账号') : null,
+      App.el('div', { id: 'fx-form-host' })));
+    loadFx(readSavedVersion());
+    mountVersionSwitcher();
   });
 
-  function render(needsBootstrap) {
-    var el = App.el, clear = App.clear, api = App.api;
-    var root = document.getElementById('root');
-    clear(root);
-
-    var boot = !!needsBootstrap;
-    var errBox = el('div');
-    var uInput = el('input', { autocomplete: 'username', placeholder: '3~32 位，字母数字' });
-    var pInput = el('input', { type: 'password', autocomplete: boot ? 'new-password' : 'current-password', placeholder: '至少 6 位' });
-    var btn = el('button', { class: 'btn lg' }, boot ? '创建并登录' : '登 录');
-
-    function submit(e) {
-      e.preventDefault();
-      clear(errBox);
-      btn.disabled = true; btn.textContent = '请稍候…';
-      api(boot ? '/auth/bootstrap' : '/auth/login',
-          { method: 'POST', body: { username: uInput.value, password: pInput.value } })
-        .then(function (data) {
-          location.replace(App.homeForRole(data.user && data.user.role));
-        })
-        .catch(function (err) {
-          errBox.appendChild(el('div', { class: 'err' }, err.message));
-          btn.disabled = false; btn.textContent = boot ? '创建并登录' : '登 录';
-        });
+  /** 让当前 fx 用自己的样式重建 form；输入恢复上次 snapshot */
+  function renderShellAndForm(snapshot) {
+    var host = document.getElementById('fx-form-host');
+    if (!host || !fx || !fx.renderForm) return;
+    var handle = fx.renderForm({ container: host, boot: bootFlag });
+    if (!handle) return;
+    if (snapshot) {
+      if (handle.uInput) handle.uInput.value = snapshot.u || '';
+      if (handle.pInput) handle.pInput.value = snapshot.p || '';
     }
+    if (handle.uInput) handle.uInput.addEventListener('focus', function () {
+      fx && fx.focusBoost && fx.focusBoost();
+    });
+    if (handle.pInput) handle.pInput.addEventListener('focus', function () {
+      fx && fx.focusBoost && fx.focusBoost();
+    });
+    handle.form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      handle.clearError();
+      handle.setBusy(true);
+      fx && fx.pulse && fx.pulse();
+      App.api(bootFlag ? '/auth/bootstrap' : '/auth/login', {
+        method: 'POST',
+        body: { username: handle.uInput.value, password: handle.pInput.value },
+      }).then(function (data) {
+        unloadFx();
+        location.replace(App.homeForRole(data.user && data.user.role));
+      }).catch(function (err) {
+        fx && fx.flashError && fx.flashError();
+        handle.showError(err.message || '登录失败');
+        handle.setBusy(false);
+      });
+    });
+  }
 
-    var form = el('form', { class: 'card stack', onsubmit: submit },
-      errBox,
-      el('label', { class: 'field' }, '用户名', uInput),
-      el('label', { class: 'field' }, '密码', pInput),
-      btn
-    );
-
-    root.appendChild(el('div', { class: 'center-screen' },
-      el('div', { class: 'brand', style: { justifyContent: 'center', marginBottom: '6px' } },
-        el('span', { class: 'dot' }), el('h1', {}, '游戏管家')),
-      boot ? el('p', { class: 'muted', style: { textAlign: 'center', margin: '0 0 20px' } }, '首次使用，创建管理员账号') : null,
-      form
-    ));
+  /** 右下角版本切换器 */
+  function mountVersionSwitcher() {
+    if (document.getElementById('login-fx-switcher')) return;
+    var wrap = App.el('div', { id: 'login-fx-switcher' });
+    Object.assign(wrap.style, {
+      position: 'fixed', right: '14px', bottom: '14px', zIndex: '3',
+      display: 'flex', gap: '6px', padding: '6px',
+      background: 'rgba(10, 15, 44, 0.55)',
+      border: '1px solid rgba(255,255,255,0.14)',
+      borderRadius: '999px',
+      backdropFilter: 'blur(12px) saturate(1.4)',
+      WebkitBackdropFilter: 'blur(12px) saturate(1.4)',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.35)',
+      fontSize: '12.5px', fontWeight: '700',
+      color: '#e8ecff',
+      pointerEvents: 'auto',
+    });
+    FX_VERSIONS.forEach(function (v) {
+      var b = App.el('button', {
+        onclick: function () { loadFx(v.key).then(refresh); },
+      }, v.label);
+      Object.assign(b.style, {
+        padding: '6px 12px', borderRadius: '999px',
+        border: '1px solid transparent',
+        background: 'transparent', color: 'inherit',
+        cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 'inherit',
+        transition: 'background .15s, color .15s, border-color .15s',
+        letterSpacing: '.4px',
+      });
+      b.dataset.key = v.key;
+      wrap.appendChild(b);
+    });
+    function refresh() {
+      var current = currentVersionKey || readSavedVersion();
+      Array.prototype.forEach.call(wrap.querySelectorAll('button'), function (b) {
+        var on = b.dataset.key === current;
+        b.style.background = on ? 'linear-gradient(120deg, #ff1e9b, #00e6ff)' : 'transparent';
+        b.style.color = on ? '#fff' : '#e8ecff';
+        b.style.borderColor = on ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.08)';
+        b.style.boxShadow = on ? '0 0 18px rgba(0,230,255,0.35)' : 'none';
+      });
+    }
+    document.body.appendChild(wrap);
+    refresh();
+    var t = setInterval(function () { if (currentVersionKey) { refresh(); clearInterval(t); } }, 100);
   }
 })();
