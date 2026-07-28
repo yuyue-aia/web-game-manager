@@ -27,6 +27,18 @@ PORT="${WEB_PORT:-8787}"
 
 mkdir -p "${RUN_DIR}"
 
+# 非交互式 SSH（`ssh host 'bash script.sh'`）拿到的 PATH 通常不包含
+# /usr/local/bin 或 nvm 的 shims，`nohup node …` 会报 "node: No such file or directory"。
+# 补上几条常见 Node 安装路径，让脚本从任何入口都能起服务。
+export PATH="/usr/local/bin:/opt/homebrew/bin:${HOME}/.nvm/versions/node/*/bin:${PATH}"
+if ! command -v node >/dev/null 2>&1; then
+  # nvm 的 shell 函数版：把最新一个已安装版本的 bin 目录塞进 PATH。
+  latest_nvm_node="$(ls -1d "${HOME}/.nvm/versions/node/"*/bin 2>/dev/null | sort -V | tail -n 1)"
+  if [[ -n "${latest_nvm_node}" ]]; then
+    export PATH="${latest_nvm_node}:${PATH}"
+  fi
+fi
+
 # 返回占用 Web 端口的监听进程 PID。
 listener_pid() {
   command -v lsof >/dev/null 2>&1 || return 1

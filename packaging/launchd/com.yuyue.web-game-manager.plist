@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  家庭游戏管家 Web 服务：macOS LaunchDaemon
+  部署路径：/Library/LaunchDaemons/com.yuyue.web-game-manager.plist（root:wheel 0644）
+  安装脚本：scripts/install-launchd.sh
+  查看状态：sudo launchctl print system/com.yuyue.web-game-manager
+  查看日志：npm run web:logs
+
+  设计要点：
+  - 系统级 daemon，开机自启，不依赖用户登录；
+  - UserName=mac 让进程以本用户身份跑，.runtime/logs 权限跟 shell 手动启动保持一致；
+  - KeepAlive.SuccessfulExit=false：只有异常退出才自动重启；
+    `launchctl bootout system/…` 主动 unload 会真的停掉，方便调试；
+  - ThrottleInterval 保证 crash 时最快 5 秒重启，防止死循环打爆日志。
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.yuyue.web-game-manager</string>
+
+  <key>UserName</key>
+  <string>mac</string>
+  <key>GroupName</key>
+  <string>staff</string>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/mac/code/web-game-manager</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/node</string>
+    <string>--import</string>
+    <string>tsx</string>
+    <string>src/web/start-web.ts</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <!-- tsx 会派生子进程；给一个稳的最小 PATH，避免踩 login shell 的差异。 -->
+    <key>PATH</key>
+    <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <!-- 让 Node 直接把未处理异常打印到 stderr（.run/web.log），便于排查。 -->
+    <key>NODE_OPTIONS</key>
+    <string>--enable-source-maps</string>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+    <key>Crashed</key>
+    <true/>
+  </dict>
+
+  <key>ThrottleInterval</key>
+  <integer>5</integer>
+
+  <key>ProcessType</key>
+  <string>Interactive</string>
+
+  <key>StandardOutPath</key>
+  <string>/Users/mac/code/web-game-manager/.run/web.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/mac/code/web-game-manager/.run/web.log</string>
+</dict>
+</plist>

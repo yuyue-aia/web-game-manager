@@ -36,6 +36,18 @@ npm run web:stop
 
 浏览器访问 http://localhost:8787，首次使用需要创建管理员账号。
 
+### 开机自启（macOS / LaunchDaemon）
+
+生产环境（例如家里的 Mac mini）推荐装成系统级 LaunchDaemon，开机自启、crash 自恢复：
+
+```bash
+sudo bash scripts/install-launchd.sh install     # 安装并启动
+sudo bash scripts/install-launchd.sh status      # 查看状态
+sudo bash scripts/install-launchd.sh uninstall   # 卸载（保留 .bak）
+```
+
+Daemon 以 `mac` 用户身份运行，工作目录固定为 `/Users/mac/code/web-game-manager`，日志继续写到 `.run/web.log`。安装前脚本会自动停掉 `npm run web:daemon` 起的 shell 进程避免抢端口。
+
 ## 目录结构
 
 ```
