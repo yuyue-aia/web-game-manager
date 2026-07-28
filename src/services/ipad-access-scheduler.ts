@@ -154,7 +154,9 @@ function isRetryable(error: unknown): boolean {
     || error.message === 'netgear_access_rejected'
     || error.message === 'invalid_mac') return false;
   const status = error.message.match(/^netgear_access_http_(\d{3})$/)?.[1];
-  return !status || Number(status) >= 500 || status === '408' || status === '429';
+  // 401 也算可重试：Orbi 固件在"当天首个请求"上会甩一次 401（未做 Basic Auth 预热），
+  // 立刻重试基本就成功；只有连续多次 401 才会通过 auth_failed 分支被判为不可重试。
+  return !status || Number(status) >= 500 || status === '401' || status === '408' || status === '429';
 }
 
 function normalizeMac(mac: string): string {
